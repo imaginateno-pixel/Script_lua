@@ -112,7 +112,7 @@ ContentFrame.Parent = MainFrame
 ContentFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
 ContentFrame.Position = UDim2.new(0, 15, 0, 50)
 ContentFrame.Size = UDim2.new(1, -30, 1, -65)
-ContentFrame.CanvasSize = UDim2.new(0, 0, 0, 500)
+ContentFrame.CanvasSize = UDim2.new(0, 0, 0, 650) -- Aumentado para dar espacio a nuevas funciones
 ContentFrame.ScrollBarThickness = 4
 
 local Grid = Instance.new("UIGridLayout")
@@ -149,6 +149,24 @@ local function CreateToggle(text, callback)
         end
         callback(state)
     end)
+end
+
+-- FUNCIÓN PARA CREAR BOTONES ACCIONES (INSTANTÁNEOS)
+local function CreateButton(text, callback)
+    local Btn = Instance.new("TextButton")
+    local BtnCorner = Instance.new("UICorner")
+    
+    Btn.Parent = ContentFrame
+    Btn.BackgroundColor3 = Color3.fromRGB(45, 45, 60)
+    Btn.Font = Enum.Font.GothamSemibold
+    Btn.Text = text
+    Btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Btn.TextSize = 12
+    
+    BtnCorner.CornerRadius = UDim.new(0, 6)
+    BtnCorner.Parent = Btn
+    
+    Btn.MouseButton1Click:Connect(callback)
 end
 
 --====================================================================--
@@ -278,7 +296,7 @@ CreateToggle("Aimbot (Follow Murderer)", function(state)
     end
 end)
 
--- Kill Aura
+-- Kill Aura (Cercano)
 CreateToggle("Kill Aura", function(state)
     if state then
         task.spawn(function()
@@ -334,6 +352,112 @@ CreateToggle("Invisible", function(state)
         for _, v in pairs(LocalPlayer.Character:GetDescendants()) do
             if v:IsA("BasePart") and v.Name ~= "HumanoidRootPart" or v:IsA("Decal") then
                 v.Transparency = trans
+            end
+        end
+    end
+end)
+
+--====================================================================--
+--                         NUEVAS FUNCIONES AÑADIDAS                  --
+--====================================================================--
+
+-- Auto Grab Gun (Te lleva a la pistola tirada al instante)
+CreateToggle("Auto Grab Gun", function(state)
+    if state then
+        task.spawn(function()
+            while Toggles["Auto Grab Gun"] do
+                local gunDrop = Workspace:FindFirstChild("GunDrop")
+                if gunDrop and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                    LocalPlayer.Character.HumanoidRootPart.CFrame = gunDrop.CFrame
+                end
+                task.wait(0.2)
+            end
+        end)
+    end
+end)
+
+-- Anti-Fling (Resetea velocidades locas para que no salgas volando)
+CreateToggle("Anti-Fling", function(state)
+    if state then
+        task.spawn(function()
+            while Toggles["Anti-Fling"] do
+                pcall(function()
+                    if LocalPlayer.Character then
+                        for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
+                            if part:IsA("BasePart") then
+                                part.Velocity = Vector3.new(0, 0, 0)
+                                part.RotVelocity = Vector3.new(0, 0, 0)
+                            end
+                        end
+                    end
+                end)
+                task.wait()
+            end
+        end)
+    end
+end)
+
+-- Silent Aim (Expande las hitboxes de objetivos clave a tamaño gigante)
+CreateToggle("Sillet Silent Aim", function(state)
+    if state then
+        task.spawn(function()
+            while Toggles["Sillet Silent Aim"] do
+                for _, v in pairs(Players:GetPlayers()) do
+                    if v ~= LocalPlayer and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+                        local role = GetRole(v)
+                        -- Si eres inocente/sheriff agranda al Murderer, si eres Murderer agranda a todos
+                        if role == "Murderer" or role == "Sheriff" then
+                            v.Character.HumanoidRootPart.Size = Vector3.new(15, 15, 15)
+                            v.Character.HumanoidRootPart.Transparency = 0.7
+                            v.Character.HumanoidRootPart.CanCollide = false
+                        end
+                    end
+                end
+                task.wait(1)
+            end
+        end)
+    else
+        for _, v in pairs(Players:GetPlayers()) do
+            if v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+                v.Character.HumanoidRootPart.Size = Vector3.new(2, 2, 1)
+                v.Character.HumanoidRootPart.Transparency = 1
+                v.Character.HumanoidRootPart.CanCollide = true
+            end
+        end
+    end
+end)
+
+-- Teleport al Sheriff
+CreateButton("TP to Sheriff", function()
+    for _, v in pairs(Players:GetPlayers()) do
+        if v ~= LocalPlayer and GetRole(v) == "Sheriff" and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+            LocalPlayer.Character.HumanoidRootPart.CFrame = v.Character.HumanoidRootPart.CFrame
+            break
+        end
+    end
+end)
+
+-- Teleport al Murderer
+CreateButton("TP to Murderer", function()
+    for _, v in pairs(Players:GetPlayers()) do
+        if v ~= LocalPlayer and GetRole(v) == "Murderer" and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+            LocalPlayer.Character.HumanoidRootPart.CFrame = v.Character.HumanoidRootPart.CFrame
+            break
+        end
+    end
+end)
+
+-- Kill All (Activa el cuchillo e impacta a todos los jugadores en el mapa)
+CreateButton("Kill All (Murderer)", function()
+    local knife = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Knife")
+    if knife then
+        for _, v in pairs(Players:GetPlayers()) do
+            if v ~= LocalPlayer and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+                pcall(function()
+                    knife:Activate()
+                    firetouchinterest(v.Character.HumanoidRootPart, knife.Handle, 0)
+                    firetouchinterest(v.Character.HumanoidRootPart, knife.Handle, 1)
+                end)
             end
         end
     end
