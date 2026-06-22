@@ -1,55 +1,87 @@
 --====================================================================--
---                      SILLET CLIENT - MM2 EDITION                   --
+--                      SILLET CLIENT - MM2 V2.0                      --
 --====================================================================--
 
-local ScreenGui = Instance.new("ScreenGui")
-local MainFrame = Instance.new("Frame")
-local UICorner = Instance.new("UICorner")
-local TopBar = Instance.new("Frame")
-local Title = Instance.new("TextLabel")
-local CloseBtn = Instance.new("TextButton")
-local ContentFrame = Instance.new("Frame")
-local TabMenu = Instance.new("Frame")
-local UIListLayout = Instance.new("UIListLayout")
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
+local LocalPlayer = Players.LocalPlayer
+local Camera = Workspace.CurrentCamera
 
--- Configuración Base del GUI (Diseño Flotante Moderno)
+local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "SilletClient_MM2"
 ScreenGui.Parent = game.CoreGui
 ScreenGui.ResetOnSpawn = false
 
+--====================================================================--
+--                            INTERFAZ (GUI)                          --
+--====================================================================--
+
+-- LOGO MINIMIZADO (Botón Flotante)
+local MinimizedLogo = Instance.new("TextButton")
+MinimizedLogo.Name = "MinimizedLogo"
+MinimizedLogo.Parent = ScreenGui
+MinimizedLogo.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+MinimizedLogo.Position = UDim2.new(0.05, 0, 0.1, 0)
+MinimizedLogo.Size = UDim2.new(0, 50, 0, 50)
+MinimizedLogo.Font = Enum.Font.GothamBold
+MinimizedLogo.Text = "🗡️\nSILLET"
+MinimizedLogo.TextColor3 = Color3.fromRGB(0, 255, 150)
+MinimizedLogo.TextSize = 12
+MinimizedLogo.Visible = false
+MinimizedLogo.Draggable = true
+
+local LogoCorner = Instance.new("UICorner")
+LogoCorner.CornerRadius = UDim.new(1, 0) -- Lo hace un círculo perfecto
+LogoCorner.Parent = MinimizedLogo
+
+-- PANEL PRINCIPAL
+local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
 MainFrame.Parent = ScreenGui
 MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
 MainFrame.Position = UDim2.new(0.3, 0, 0.3, 0)
-MainFrame.Size = UDim2.new(0, 450, 0, 300)
+MainFrame.Size = UDim2.new(0, 450, 0, 350)
 MainFrame.Active = true
-MainFrame.Draggable = true -- Para que lo puedas mover por la pantalla
+MainFrame.Draggable = true
 
+local UICorner = Instance.new("UICorner")
 UICorner.CornerRadius = UDim.new(0, 10)
 UICorner.Parent = MainFrame
 
--- Barra Superior
-TopBar.Name = "TopBar"
+-- BARRA SUPERIOR
+local TopBar = Instance.new("Frame")
 TopBar.Parent = MainFrame
 TopBar.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
 TopBar.Size = UDim2.new(1, 0, 0, 35)
-
 local TopCorner = Instance.new("UICorner")
 TopCorner.CornerRadius = UDim.new(0, 10)
 TopCorner.Parent = TopBar
 
-Title.Name = "Title"
+local Title = Instance.new("TextLabel")
 Title.Parent = TopBar
 Title.BackgroundTransparency = 1
 Title.Position = UDim2.new(0, 15, 0, 0)
 Title.Size = UDim2.new(0, 200, 1, 0)
 Title.Font = Enum.Font.GothamBold
-Title.Text = "SILLET CLIENT v1.0"
-Title.TextColor3 = Color3.fromRGB(0, 255, 150) -- Verde Neón
+Title.Text = "SILLET CLIENT v2.0 - MM2"
+Title.TextColor3 = Color3.fromRGB(0, 255, 150)
 Title.TextSize = 16
 Title.TextXAlignment = Enum.TextXAlignment.Left
 
-CloseBtn.Name = "CloseBtn"
+-- BOTÓN MINIMIZAR
+local MinBtn = Instance.new("TextButton")
+MinBtn.Parent = TopBar
+MinBtn.BackgroundTransparency = 1
+MinBtn.Position = UDim2.new(1, -70, 0, 0)
+MinBtn.Size = UDim2.new(0, 35, 1, 0)
+MinBtn.Font = Enum.Font.GothamBold
+MinBtn.Text = "-"
+MinBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+MinBtn.TextSize = 20
+
+-- BOTÓN CERRAR
+local CloseBtn = Instance.new("TextButton")
 CloseBtn.Parent = TopBar
 CloseBtn.BackgroundTransparency = 1
 CloseBtn.Position = UDim2.new(1, -35, 0, 0)
@@ -59,157 +91,250 @@ CloseBtn.Text = "X"
 CloseBtn.TextColor3 = Color3.fromRGB(255, 75, 75)
 CloseBtn.TextSize = 16
 
+-- Lógica de Minimizar y Cerrar
+MinBtn.MouseButton1Click:Connect(function()
+    MainFrame.Visible = false
+    MinimizedLogo.Visible = true
+end)
+
+MinimizedLogo.MouseButton1Click:Connect(function()
+    MainFrame.Visible = true
+    MinimizedLogo.Visible = false
+end)
+
 CloseBtn.MouseButton1Click:Connect(function()
     ScreenGui:Destroy()
 end)
 
--- Contenedor de Botones
-ContentFrame.Name = "ContentFrame"
+-- CONTENEDOR DE BOTONES
+local ContentFrame = Instance.new("ScrollingFrame")
 ContentFrame.Parent = MainFrame
 ContentFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
 ContentFrame.Position = UDim2.new(0, 15, 0, 50)
 ContentFrame.Size = UDim2.new(1, -30, 1, -65)
-
-local ContentCorner = Instance.new("UICorner")
-ContentCorner.CornerRadius = UDim.new(0, 8)
-ContentCorner.Parent = ContentFrame
+ContentFrame.CanvasSize = UDim2.new(0, 0, 0, 500)
+ContentFrame.ScrollBarThickness = 4
 
 local Grid = Instance.new("UIGridLayout")
 Grid.Parent = ContentFrame
 Grid.CellPadding = UDim2.new(0, 10, 0, 10)
-Grid.CellSize = UDim2.new(0, 130, 0, 35)
-Grid.SortOrder = Enum.SortOrder.LayoutOrder
+Grid.CellSize = UDim2.new(0, 195, 0, 35)
 
--- Función para crear botones elegantes
-local function CreateButton(text, callback)
+-- FUNCIÓN PARA CREAR TOGGLES (ON/OFF)
+local Toggles = {}
+local function CreateToggle(text, callback)
+    local state = false
     local Btn = Instance.new("TextButton")
     local BtnCorner = Instance.new("UICorner")
     
-    Btn.Name = text .. "Btn"
     Btn.Parent = ContentFrame
     Btn.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
     Btn.Font = Enum.Font.GothamSemibold
-    Btn.Text = text
-    Btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Btn.Text = text .. " [OFF]"
+    Btn.TextColor3 = Color3.fromRGB(255, 75, 75)
     Btn.TextSize = 12
     
     BtnCorner.CornerRadius = UDim.new(0, 6)
     BtnCorner.Parent = Btn
     
-    Btn.MouseButton1Click:Connect(callback)
-    
-    -- Efecto Visual al pasar el mouse/tocar
-    Btn.MouseEnter:Connect(function() Btn.BackgroundColor3 = Color3.fromRGB(0, 255, 150); Btn.TextColor3 = Color3.fromRGB(0,0,0) end)
-    Btn.MouseLeave:Connect(function() Btn.BackgroundColor3 = Color3.fromRGB(40, 40, 55); Btn.TextColor3 = Color3.fromRGB(255,255,255) end)
-end
-
---====================================================================--
---                            LOGICA DE LOGS                          --
---====================================================================--
-
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-
--- Buscar Roles en MM2
-local function GetMurderer()
-    for _, v in pairs(Players:GetPlayers()) do
-        if v.Backpack:FindFirstChild("Knife") or (v.Character and v.Character:FindFirstChild("Knife")) then
-            return v
+    Btn.MouseButton1Click:Connect(function()
+        state = not state
+        Toggles[text] = state
+        if state then
+            Btn.Text = text .. " [ON]"
+            Btn.TextColor3 = Color3.fromRGB(0, 255, 150)
+        else
+            Btn.Text = text .. " [OFF]"
+            Btn.TextColor3 = Color3.fromRGB(255, 75, 75)
         end
-    end
-    return nil
-end
-
-local function GetSheriff()
-    for _, v in pairs(Players:GetPlayers()) do
-        if v.Backpack:FindFirstChild("Gun") or (v.Character and v.Character:FindFirstChild("Gun")) then
-            return v
-        end
-    end
-    return nil
+        callback(state)
+    end)
 end
 
 --====================================================================--
---                         CREACIÓN DE BOTONES                        --
+--                            FUNCIONES LOGICAS                       --
 --====================================================================--
 
--- 1. Teleports
-CreateButton("TP Murderer", function()
-    local target = GetMurderer()
-    if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
-        LocalPlayer.Character.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame * CFrame.new(0, 3, 0)
+local function GetRole(player)
+    if player.Backpack:FindFirstChild("Knife") or (player.Character and player.Character:FindFirstChild("Knife")) then
+        return "Murderer"
+    elseif player.Backpack:FindFirstChild("Gun") or (player.Character and player.Character:FindFirstChild("Gun")) then
+        return "Sheriff"
     end
-end)
+    return "Innocent"
+end
 
-CreateButton("TP Sheriff", function()
-    local target = GetSheriff()
-    if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
-        LocalPlayer.Character.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame * CFrame.new(0, 3, 0)
-    end
-end)
+--====================================================================--
+--                              TOGGLES                               --
+--====================================================================--
 
--- 2. Combate
-CreateButton("Aimbot Gun", function()
-    -- Apuntar automáticamente al Murderer si tienes la pistola
-    local target = GetMurderer()
-    if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
-        workspace.CurrentCamera.CFrame = CFrame.new(workspace.CurrentCamera.CFrame.Position, target.Character.HumanoidRootPart.Position)
-    end
-end)
-
-CreateButton("Kill Aura", function()
-    -- Simulación visual / ataque cercano (Requiere tener el cuchillo equipado en la mano)
-    local knife = LocalPlayer.Character:FindFirstChild("Knife")
-    if knife then
+-- ESP (Jugadores)
+CreateToggle("ESP Players", function(state)
+    if state then
+        task.spawn(function()
+            while Toggles["ESP Players"] do
+                for _, v in pairs(Players:GetPlayers()) do
+                    if v ~= LocalPlayer and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+                        local role = GetRole(v)
+                        local color = Color3.fromRGB(255, 255, 255) -- Inocente (Blanco)
+                        if role == "Murderer" then color = Color3.fromRGB(255, 0, 0) end
+                        if role == "Sheriff" then color = Color3.fromRGB(0, 0, 255) end
+                        
+                        if not v.Character:FindFirstChild("SilletESP") then
+                            local highlight = Instance.new("Highlight")
+                            highlight.Name = "SilletESP"
+                            highlight.Parent = v.Character
+                            highlight.FillTransparency = 0.5
+                            highlight.OutlineTransparency = 0
+                            highlight.FillColor = color
+                            highlight.OutlineColor = color
+                        else
+                            v.Character.SilletESP.FillColor = color
+                            v.Character.SilletESP.OutlineColor = color
+                        end
+                    end
+                end
+                task.wait(1)
+            end
+        end)
+    else
         for _, v in pairs(Players:GetPlayers()) do
-            if v ~= LocalPlayer and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
-                local dist = (LocalPlayer.Character.HumanoidRootPart.Position - v.Character.HumanoidRootPart.Position).Magnitude
-                if dist < 15 then
-                    knife:Activate()
-                    firetouchinterest(v.Character.HumanoidRootPart, knife.Handle, 0)
-                    firetouchinterest(v.Character.HumanoidRootPart, knife.Handle, 1)
+            if v.Character and v.Character:FindFirstChild("SilletESP") then
+                v.Character.SilletESP:Destroy()
+            end
+        end
+    end
+end)
+
+-- ESP (Pistola Tirada)
+CreateToggle("ESP Dropped Gun", function(state)
+    if state then
+        task.spawn(function()
+            while Toggles["ESP Dropped Gun"] do
+                local gunDrop = Workspace:FindFirstChild("GunDrop")
+                if gunDrop and not gunDrop:FindFirstChild("SilletGunESP") then
+                    local highlight = Instance.new("Highlight")
+                    highlight.Name = "SilletGunESP"
+                    highlight.Parent = gunDrop
+                    highlight.FillColor = Color3.fromRGB(255, 255, 0) -- Amarillo
+                    highlight.OutlineColor = Color3.fromRGB(255, 255, 0)
+                end
+                task.wait(1)
+            end
+        end)
+    else
+        local gunDrop = Workspace:FindFirstChild("GunDrop")
+        if gunDrop and gunDrop:FindFirstChild("SilletGunESP") then
+            gunDrop.SilletGunESP:Destroy()
+        end
+    end
+end)
+
+-- ESP (Monedas)
+CreateToggle("ESP Coins", function(state)
+    if state then
+        task.spawn(function()
+            while Toggles["ESP Coins"] do
+                local map = Workspace:FindFirstChild("Normal")
+                if map and map:FindFirstChild("CoinContainer") then
+                    for _, coin in pairs(map.CoinContainer:GetChildren()) do
+                        if not coin:FindFirstChild("SilletCoinESP") then
+                            local highlight = Instance.new("Highlight")
+                            highlight.Name = "SilletCoinESP"
+                            highlight.Parent = coin
+                            highlight.FillColor = Color3.fromRGB(0, 255, 0) -- Verde
+                            highlight.FillTransparency = 0.6
+                        end
+                    end
+                end
+                task.wait(2)
+            end
+        end)
+    else
+        local map = Workspace:FindFirstChild("Normal")
+        if map and map:FindFirstChild("CoinContainer") then
+            for _, coin in pairs(map.CoinContainer:GetChildren()) do
+                if coin:FindFirstChild("SilletCoinESP") then
+                    coin.SilletCoinESP:Destroy()
                 end
             end
         end
     end
 end)
 
--- 3. Movimiento & Estado
-local flying = false
-CreateButton("Fly (On/Off)", function()
-    flying = not flying
-    local speed = 50
-    local c
-    local h = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
-    if flying then
-        local bv = Instance.new("BodyVelocity", LocalPlayer.Character.HumanoidRootPart)
-        bv.MaxForce = Vector3.new(9e9, 9e9, 9e9)
-        bv.Velocity = Vector3.new(0, 0, 0)
+-- Aimbot (Murderer)
+CreateToggle("Aimbot (Follow Murderer)", function(state)
+    if state then
         task.spawn(function()
-            while flying and task.wait() do
-                bv.Velocity = h.MoveDirection * speed
+            while Toggles["Aimbot (Follow Murderer)"] do
+                for _, v in pairs(Players:GetPlayers()) do
+                    if v ~= LocalPlayer and GetRole(v) == "Murderer" and v.Character and v.Character:FindFirstChild("Head") then
+                        Camera.CFrame = CFrame.new(Camera.CFrame.Position, v.Character.Head.Position)
+                    end
+                end
+                task.wait()
             end
-            bv:Destroy()
         end)
     end
 end)
 
-CreateButton("Invisible", function()
-    if LocalPlayer.Character then
-        for _, v in pairs(LocalPlayer.Character:GetDescendants()) do
-            if v:IsA("BasePart") or v:IsA("Decal") then
-                v.Transparency = 1
+-- Kill Aura
+CreateToggle("Kill Aura", function(state)
+    if state then
+        task.spawn(function()
+            while Toggles["Kill Aura"] do
+                local knife = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Knife")
+                if knife then
+                    for _, v in pairs(Players:GetPlayers()) do
+                        if v ~= LocalPlayer and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+                            local dist = (LocalPlayer.Character.HumanoidRootPart.Position - v.Character.HumanoidRootPart.Position).Magnitude
+                            if dist < 15 then
+                                knife:Activate()
+                                firetouchinterest(v.Character.HumanoidRootPart, knife.Handle, 0)
+                                firetouchinterest(v.Character.HumanoidRootPart, knife.Handle, 1)
+                            end
+                        end
+                    end
+                end
+                task.wait(0.1)
             end
+        end)
+    end
+end)
+
+-- Fly
+local bodyVelocity = nil
+CreateToggle("Fly", function(state)
+    local character = LocalPlayer.Character
+    if state and character and character:FindFirstChild("HumanoidRootPart") then
+        bodyVelocity = Instance.new("BodyVelocity")
+        bodyVelocity.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+        bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+        bodyVelocity.Parent = character.HumanoidRootPart
+        
+        task.spawn(function()
+            while Toggles["Fly"] and character and character:FindFirstChild("Humanoid") do
+                local moveDir = character.Humanoid.MoveDirection
+                bodyVelocity.Velocity = moveDir * 50
+                task.wait()
+            end
+        end)
+    else
+        if bodyVelocity then
+            bodyVelocity:Destroy()
+            bodyVelocity = nil
         end
     end
 end)
 
--- Botón extra útil para MM2
-CreateButton("Espiar Roles", function()
-    local m = GetMurderer()
-    local s = GetSheriff()
-    print("--- ROLES ---")
-    print("Asesino: " .. (m and m.Name or "No encontrado"))
-    print("Sheriff: " .. (s and s.Name or "No encontrado"))
+-- Invisible
+CreateToggle("Invisible", function(state)
+    if LocalPlayer.Character then
+        local trans = state and 1 or 0
+        for _, v in pairs(LocalPlayer.Character:GetDescendants()) do
+            if v:IsA("BasePart") and v.Name ~= "HumanoidRootPart" or v:IsA("Decal") then
+                v.Transparency = trans
+            end
+        end
+    end
 end)
-
