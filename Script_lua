@@ -10,7 +10,10 @@ local Camera = Workspace.CurrentCamera
 
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "SilletClient_MM2"
-ScreenGui.Parent = game.CoreGui
+
+-- Optimizacion para Delta (Evita bloqueos de interfaz)
+local ParentGui = (gethui and gethui()) or game:GetService("CoreGui") or LocalPlayer:WaitForChild("PlayerGui")
+ScreenGui.Parent = ParentGui
 ScreenGui.ResetOnSpawn = false
 
 --====================================================================--
@@ -32,7 +35,7 @@ MinimizedLogo.Visible = false
 MinimizedLogo.Draggable = true
 
 local LogoCorner = Instance.new("UICorner")
-LogoCorner.CornerRadius = UDim.new(1, 0) -- Lo hace un círculo perfecto
+LogoCorner.CornerRadius = UDim.new(1, 0)
 LogoCorner.Parent = MinimizedLogo
 
 -- PANEL PRINCIPAL
@@ -112,7 +115,7 @@ ContentFrame.Parent = MainFrame
 ContentFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
 ContentFrame.Position = UDim2.new(0, 15, 0, 50)
 ContentFrame.Size = UDim2.new(1, -30, 1, -65)
-ContentFrame.CanvasSize = UDim2.new(0, 0, 0, 650) -- Aumentado para dar espacio a nuevas funciones
+ContentFrame.CanvasSize = UDim2.new(0, 0, 0, 650)
 ContentFrame.ScrollBarThickness = 4
 
 local Grid = Instance.new("UIGridLayout")
@@ -194,7 +197,7 @@ CreateToggle("ESP Players", function(state)
                 for _, v in pairs(Players:GetPlayers()) do
                     if v ~= LocalPlayer and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
                         local role = GetRole(v)
-                        local color = Color3.fromRGB(255, 255, 255) -- Inocente (Blanco)
+                        local color = Color3.fromRGB(255, 255, 255)
                         if role == "Murderer" then color = Color3.fromRGB(255, 0, 0) end
                         if role == "Sheriff" then color = Color3.fromRGB(0, 0, 255) end
                         
@@ -234,7 +237,7 @@ CreateToggle("ESP Dropped Gun", function(state)
                     local highlight = Instance.new("Highlight")
                     highlight.Name = "SilletGunESP"
                     highlight.Parent = gunDrop
-                    highlight.FillColor = Color3.fromRGB(255, 255, 0) -- Amarillo
+                    highlight.FillColor = Color3.fromRGB(255, 255, 0)
                     highlight.OutlineColor = Color3.fromRGB(255, 255, 0)
                 end
                 task.wait(1)
@@ -260,7 +263,7 @@ CreateToggle("ESP Coins", function(state)
                             local highlight = Instance.new("Highlight")
                             highlight.Name = "SilletCoinESP"
                             highlight.Parent = coin
-                            highlight.FillColor = Color3.fromRGB(0, 255, 0) -- Verde
+                            highlight.FillColor = Color3.fromRGB(0, 255, 0)
                             highlight.FillTransparency = 0.6
                         end
                     end
@@ -296,7 +299,7 @@ CreateToggle("Aimbot (Follow Murderer)", function(state)
     end
 end)
 
--- Kill Aura (Cercano)
+-- Kill Aura
 CreateToggle("Kill Aura", function(state)
     if state then
         task.spawn(function()
@@ -357,11 +360,7 @@ CreateToggle("Invisible", function(state)
     end
 end)
 
---====================================================================--
---                         NUEVAS FUNCIONES AÑADIDAS                  --
---====================================================================--
-
--- Auto Grab Gun (Te lleva a la pistola tirada al instante)
+-- Auto Grab Gun
 CreateToggle("Auto Grab Gun", function(state)
     if state then
         task.spawn(function()
@@ -376,7 +375,7 @@ CreateToggle("Auto Grab Gun", function(state)
     end
 end)
 
--- Anti-Fling (Resetea velocidades locas para que no salgas volando)
+-- Anti-Fling
 CreateToggle("Anti-Fling", function(state)
     if state then
         task.spawn(function()
@@ -397,7 +396,7 @@ CreateToggle("Anti-Fling", function(state)
     end
 end)
 
--- Silent Aim (Expande las hitboxes de objetivos clave a tamaño gigante)
+-- Silent Aim
 CreateToggle("Sillet Silent Aim", function(state)
     if state then
         task.spawn(function()
@@ -405,7 +404,6 @@ CreateToggle("Sillet Silent Aim", function(state)
                 for _, v in pairs(Players:GetPlayers()) do
                     if v ~= LocalPlayer and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
                         local role = GetRole(v)
-                        -- Si eres inocente/sheriff agranda al Murderer, si eres Murderer agranda a todos
                         if role == "Murderer" or role == "Sheriff" then
                             v.Character.HumanoidRootPart.Size = Vector3.new(15, 15, 15)
                             v.Character.HumanoidRootPart.Transparency = 0.7
@@ -427,7 +425,7 @@ CreateToggle("Sillet Silent Aim", function(state)
     end
 end)
 
--- Teleport al Sheriff
+-- Teleports e Instantáneos
 CreateButton("TP to Sheriff", function()
     for _, v in pairs(Players:GetPlayers()) do
         if v ~= LocalPlayer and GetRole(v) == "Sheriff" and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
@@ -447,7 +445,7 @@ CreateButton("TP to Murderer", function()
     end
 end)
 
--- Kill All (Activa el cuchillo e impacta a todos los jugadores en el mapa)
+-- Kill All
 CreateButton("Kill All (Murderer)", function()
     local knife = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Knife")
     if knife then
@@ -462,3 +460,4 @@ CreateButton("Kill All (Murderer)", function()
         end
     end
 end)
+
