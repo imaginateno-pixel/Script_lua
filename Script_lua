@@ -1,0 +1,215 @@
+--====================================================================--
+--                      SILLET CLIENT - MM2 EDITION                   --
+--====================================================================--
+
+local ScreenGui = Instance.new("ScreenGui")
+local MainFrame = Instance.new("Frame")
+local UICorner = Instance.new("UICorner")
+local TopBar = Instance.new("Frame")
+local Title = Instance.new("TextLabel")
+local CloseBtn = Instance.new("TextButton")
+local ContentFrame = Instance.new("Frame")
+local TabMenu = Instance.new("Frame")
+local UIListLayout = Instance.new("UIListLayout")
+
+-- Configuración Base del GUI (Diseño Flotante Moderno)
+ScreenGui.Name = "SilletClient_MM2"
+ScreenGui.Parent = game.CoreGui
+ScreenGui.ResetOnSpawn = false
+
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+MainFrame.Position = UDim2.new(0.3, 0, 0.3, 0)
+MainFrame.Size = UDim2.new(0, 450, 0, 300)
+MainFrame.Active = true
+MainFrame.Draggable = true -- Para que lo puedas mover por la pantalla
+
+UICorner.CornerRadius = UDim.new(0, 10)
+UICorner.Parent = MainFrame
+
+-- Barra Superior
+TopBar.Name = "TopBar"
+TopBar.Parent = MainFrame
+TopBar.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+TopBar.Size = UDim2.new(1, 0, 0, 35)
+
+local TopCorner = Instance.new("UICorner")
+TopCorner.CornerRadius = UDim.new(0, 10)
+TopCorner.Parent = TopBar
+
+Title.Name = "Title"
+Title.Parent = TopBar
+Title.BackgroundTransparency = 1
+Title.Position = UDim2.new(0, 15, 0, 0)
+Title.Size = UDim2.new(0, 200, 1, 0)
+Title.Font = Enum.Font.GothamBold
+Title.Text = "SILLET CLIENT v1.0"
+Title.TextColor3 = Color3.fromRGB(0, 255, 150) -- Verde Neón
+Title.TextSize = 16
+Title.TextXAlignment = Enum.TextXAlignment.Left
+
+CloseBtn.Name = "CloseBtn"
+CloseBtn.Parent = TopBar
+CloseBtn.BackgroundTransparency = 1
+CloseBtn.Position = UDim2.new(1, -35, 0, 0)
+CloseBtn.Size = UDim2.new(0, 35, 1, 0)
+CloseBtn.Font = Enum.Font.GothamBold
+CloseBtn.Text = "X"
+CloseBtn.TextColor3 = Color3.fromRGB(255, 75, 75)
+CloseBtn.TextSize = 16
+
+CloseBtn.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
+end)
+
+-- Contenedor de Botones
+ContentFrame.Name = "ContentFrame"
+ContentFrame.Parent = MainFrame
+ContentFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+ContentFrame.Position = UDim2.new(0, 15, 0, 50)
+ContentFrame.Size = UDim2.new(1, -30, 1, -65)
+
+local ContentCorner = Instance.new("UICorner")
+ContentCorner.CornerRadius = UDim.new(0, 8)
+ContentCorner.Parent = ContentFrame
+
+local Grid = Instance.new("UIGridLayout")
+Grid.Parent = ContentFrame
+Grid.CellPadding = UDim2.new(0, 10, 0, 10)
+Grid.CellSize = UDim2.new(0, 130, 0, 35)
+Grid.SortOrder = Enum.SortOrder.LayoutOrder
+
+-- Función para crear botones elegantes
+local function CreateButton(text, callback)
+    local Btn = Instance.new("TextButton")
+    local BtnCorner = Instance.new("UICorner")
+    
+    Btn.Name = text .. "Btn"
+    Btn.Parent = ContentFrame
+    Btn.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
+    Btn.Font = Enum.Font.GothamSemibold
+    Btn.Text = text
+    Btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Btn.TextSize = 12
+    
+    BtnCorner.CornerRadius = UDim.new(0, 6)
+    BtnCorner.Parent = Btn
+    
+    Btn.MouseButton1Click:Connect(callback)
+    
+    -- Efecto Visual al pasar el mouse/tocar
+    Btn.MouseEnter:Connect(function() Btn.BackgroundColor3 = Color3.fromRGB(0, 255, 150); Btn.TextColor3 = Color3.fromRGB(0,0,0) end)
+    Btn.MouseLeave:Connect(function() Btn.BackgroundColor3 = Color3.fromRGB(40, 40, 55); Btn.TextColor3 = Color3.fromRGB(255,255,255) end)
+end
+
+--====================================================================--
+--                            LOGICA DE LOGS                          --
+--====================================================================--
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+-- Buscar Roles en MM2
+local function GetMurderer()
+    for _, v in pairs(Players:GetPlayers()) do
+        if v.Backpack:FindFirstChild("Knife") or (v.Character and v.Character:FindFirstChild("Knife")) then
+            return v
+        end
+    end
+    return nil
+end
+
+local function GetSheriff()
+    for _, v in pairs(Players:GetPlayers()) do
+        if v.Backpack:FindFirstChild("Gun") or (v.Character and v.Character:FindFirstChild("Gun")) then
+            return v
+        end
+    end
+    return nil
+end
+
+--====================================================================--
+--                         CREACIÓN DE BOTONES                        --
+--====================================================================--
+
+-- 1. Teleports
+CreateButton("TP Murderer", function()
+    local target = GetMurderer()
+    if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+        LocalPlayer.Character.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame * CFrame.new(0, 3, 0)
+    end
+end)
+
+CreateButton("TP Sheriff", function()
+    local target = GetSheriff()
+    if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+        LocalPlayer.Character.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame * CFrame.new(0, 3, 0)
+    end
+end)
+
+-- 2. Combate
+CreateButton("Aimbot Gun", function()
+    -- Apuntar automáticamente al Murderer si tienes la pistola
+    local target = GetMurderer()
+    if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+        workspace.CurrentCamera.CFrame = CFrame.new(workspace.CurrentCamera.CFrame.Position, target.Character.HumanoidRootPart.Position)
+    end
+end)
+
+CreateButton("Kill Aura", function()
+    -- Simulación visual / ataque cercano (Requiere tener el cuchillo equipado en la mano)
+    local knife = LocalPlayer.Character:FindFirstChild("Knife")
+    if knife then
+        for _, v in pairs(Players:GetPlayers()) do
+            if v ~= LocalPlayer and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+                local dist = (LocalPlayer.Character.HumanoidRootPart.Position - v.Character.HumanoidRootPart.Position).Magnitude
+                if dist < 15 then
+                    knife:Activate()
+                    firetouchinterest(v.Character.HumanoidRootPart, knife.Handle, 0)
+                    firetouchinterest(v.Character.HumanoidRootPart, knife.Handle, 1)
+                end
+            end
+        end
+    end
+end)
+
+-- 3. Movimiento & Estado
+local flying = false
+CreateButton("Fly (On/Off)", function()
+    flying = not flying
+    local speed = 50
+    local c
+    local h = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+    if flying then
+        local bv = Instance.new("BodyVelocity", LocalPlayer.Character.HumanoidRootPart)
+        bv.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+        bv.Velocity = Vector3.new(0, 0, 0)
+        task.spawn(function()
+            while flying and task.wait() do
+                bv.Velocity = h.MoveDirection * speed
+            end
+            bv:Destroy()
+        end)
+    end
+end)
+
+CreateButton("Invisible", function()
+    if LocalPlayer.Character then
+        for _, v in pairs(LocalPlayer.Character:GetDescendants()) do
+            if v:IsA("BasePart") or v:IsA("Decal") then
+                v.Transparency = 1
+            end
+        end
+    end
+end)
+
+-- Botón extra útil para MM2
+CreateButton("Espiar Roles", function()
+    local m = GetMurderer()
+    local s = GetSheriff()
+    print("--- ROLES ---")
+    print("Asesino: " .. (m and m.Name or "No encontrado"))
+    print("Sheriff: " .. (s and s.Name or "No encontrado"))
+end)
+
