@@ -11,10 +11,14 @@ local Camera = Workspace.CurrentCamera
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "SilletClient_MM2"
 
--- Optimizacion para Delta (Evita bloqueos de interfaz)
+-- Optimización para Delta (Evita bloqueos de interfaz)
 local ParentGui = (gethui and gethui()) or game:GetService("CoreGui") or LocalPlayer:WaitForChild("PlayerGui")
 ScreenGui.Parent = ParentGui
 ScreenGui.ResetOnSpawn = false
+
+-- Variables globales de configuración dinámica
+local FlySpeedValue = 50
+local WalkSpeedValue = 50
 
 --====================================================================--
 --                            INTERFAZ (GUI)                          --
@@ -115,7 +119,7 @@ ContentFrame.Parent = MainFrame
 ContentFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
 ContentFrame.Position = UDim2.new(0, 15, 0, 50)
 ContentFrame.Size = UDim2.new(1, -30, 1, -65)
-ContentFrame.CanvasSize = UDim2.new(0, 0, 0, 650)
+ContentFrame.CanvasSize = UDim2.new(0, 0, 0, 850)
 ContentFrame.ScrollBarThickness = 4
 
 local Grid = Instance.new("UIGridLayout")
@@ -172,6 +176,45 @@ local function CreateButton(text, callback)
     Btn.MouseButton1Click:Connect(callback)
 end
 
+-- FUNCIÓN PARA CREAR CUADROS DE TEXTO (CONFIGURAR VALORES)
+local function CreateTextBox(text, default, callback)
+    local Holder = Instance.new("Frame")
+    Holder.Parent = ContentFrame
+    Holder.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
+    
+    local HolderCorner = Instance.new("UICorner")
+    HolderCorner.CornerRadius = UDim.new(0, 6)
+    HolderCorner.Parent = Holder
+    
+    local Label = Instance.new("TextLabel")
+    Label.Parent = Holder
+    Label.BackgroundTransparency = 1
+    Label.Size = UDim2.new(0.6, 0, 1, 0)
+    Label.Font = Enum.Font.GothamSemibold
+    Label.Text = text
+    Label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Label.TextSize = 11
+    Label.TextXAlignment = Enum.TextXAlignment.Center
+    
+    local Box = Instance.new("TextBox")
+    Box.Parent = Holder
+    Box.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+    Box.Position = UDim2.new(0.6, 0, 0.15, 0)
+    Box.Size = UDim2.new(0.35, 0, 0.7, 0)
+    Box.Font = Enum.Font.GothamBold
+    Box.Text = default
+    Box.TextColor3 = Color3.fromRGB(0, 255, 150)
+    Box.TextSize = 12
+    
+    local BoxCorner = Instance.new("UICorner")
+    BoxCorner.CornerRadius = UDim.new(0, 4)
+    BoxCorner.Parent = Box
+    
+    Box.FocusLost:Connect(function(enterPressed)
+        callback(Box.Text)
+    end)
+end
+
 --====================================================================--
 --                            FUNCIONES LOGICAS                       --
 --====================================================================--
@@ -183,6 +226,39 @@ local function GetRole(player)
         return "Sheriff"
     end
     return "Innocent"
+end
+
+local function ExecuteFling(target)
+    if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        local myHrp = LocalPlayer.Character.HumanoidRootPart
+        local targetHrp = target.Character.HumanoidRootPart
+        local oldCFrame = myHrp.CFrame
+        
+        local bav = Instance.new("BodyAngularVelocity")
+        bav.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
+        bav.AngularVelocity = Vector3.new(0, 99999, 0)
+        bav.Parent = myHrp
+        
+        local bv = Instance.new("BodyVelocity")
+        bv.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+        bv.Velocity = Vector3.new(0, 0, 0)
+        bv.Parent = myHrp
+        
+        for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
+            if part:IsA("BasePart") then part.CanCollide = false end
+        end
+        
+        for i = 1, 30 do
+            if target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+                myHrp.CFrame = targetHrp.CFrame * CFrame.new(0, 0, 0.2)
+            end
+            task.wait(0.01)
+        end
+        
+        bav:Destroy()
+        bv:Destroy()
+        myHrp.CFrame = oldCFrame
+    end
 end
 
 --====================================================================--
@@ -323,7 +399,7 @@ CreateToggle("Kill Aura", function(state)
     end
 end)
 
--- Fly
+-- Fly (Con velocidad dinámica asignada)
 local bodyVelocity = nil
 CreateToggle("Fly", function(state)
     local character = LocalPlayer.Character
@@ -336,7 +412,7 @@ CreateToggle("Fly", function(state)
         task.spawn(function()
             while Toggles["Fly"] and character and character:FindFirstChild("Humanoid") do
                 local moveDir = character.Humanoid.MoveDirection
-                bodyVelocity.Velocity = moveDir * 50
+                bodyVelocity.Velocity = moveDir * FlySpeedValue
                 task.wait()
             end
         end)
@@ -345,6 +421,28 @@ CreateToggle("Fly", function(state)
             bodyVelocity:Destroy()
             bodyVelocity = nil
         end
+    end
+end)
+
+-- Speed Hack
+CreateToggle("Speed Hack", function(state)
+    if state then
+        task.spawn(function()
+            while Toggles["Speed Hack"] do
+                pcall(function()
+                    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+                        LocalPlayer.Character.Humanoid.WalkSpeed = WalkSpeedValue
+                    end
+                end)
+                task.wait(0.1)
+            end
+        end)
+    else
+        pcall(function()
+            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+                LocalPlayer.Character.Humanoid.WalkSpeed = 16
+            end
+        end)
     end
 end)
 
@@ -425,7 +523,10 @@ CreateToggle("Sillet Silent Aim", function(state)
     end
 end)
 
--- Teleports e Instantáneos
+--====================================================================--
+--                            TELEPORTS                               --
+--====================================================================--
+
 CreateButton("TP to Sheriff", function()
     for _, v in pairs(Players:GetPlayers()) do
         if v ~= LocalPlayer and GetRole(v) == "Sheriff" and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
@@ -435,7 +536,6 @@ CreateButton("TP to Sheriff", function()
     end
 end)
 
--- Teleport al Murderer
 CreateButton("TP to Murderer", function()
     for _, v in pairs(Players:GetPlayers()) do
         if v ~= LocalPlayer and GetRole(v) == "Murderer" and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
@@ -445,7 +545,6 @@ CreateButton("TP to Murderer", function()
     end
 end)
 
--- Kill All
 CreateButton("Kill All (Murderer)", function()
     local knife = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Knife")
     if knife then
@@ -461,3 +560,47 @@ CreateButton("Kill All (Murderer)", function()
     end
 end)
 
+--====================================================================--
+--                             FLING                                  --
+--====================================================================--
+
+CreateButton("Fling Sheriff", function()
+    for _, v in pairs(Players:GetPlayers()) do
+        if v ~= LocalPlayer and GetRole(v) == "Sheriff" then
+            ExecuteFling(v)
+            break
+        end
+    end
+end)
+
+CreateButton("Fling Murderer", function()
+    for _, v in pairs(Players:GetPlayers()) do
+        if v ~= LocalPlayer and GetRole(v) == "Murderer" then
+            ExecuteFling(v)
+            break
+        end
+    end
+end)
+
+CreateButton("Fling All Players", function()
+    for _, v in pairs(Players:GetPlayers()) do
+        if v ~= LocalPlayer then
+            ExecuteFling(v)
+            task.wait(0.2)
+        end
+    end
+end)
+
+--====================================================================--
+--                    CONFIGURACIÓN DE VELOCIDADES                    --
+--====================================================================--
+
+CreateTextBox("Fly Speed Value", "50", function(val)
+    local num = tonumber(val)
+    if num then FlySpeedValue = num end
+end)
+
+CreateTextBox("Walk Speed Value", "50", function(val)
+    local num = tonumber(val)
+    if num then WalkSpeedValue = num end
+end)
